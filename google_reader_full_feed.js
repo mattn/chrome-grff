@@ -140,14 +140,12 @@ var FlashMessage = new function(){
     duration = duration || 400;
     canceler && canceler();
     flash.innerHTML = string;
-    //flash.style.MozOpacity = opacity;
     flash.style.opacity = opacity;
     show(flash);
     flash.style.marginLeft = (-(flash.offsetWidth/2))+'px';
 
     canceler = callLater(function(){
       canceler = tween(function(value){
-        //flash.style.MozOpacity = opacity * (1-value);
         flash.style.opacity = opacity * (1-value);
       }, 100, 5);
     }, duration);
@@ -195,44 +193,44 @@ function message (mes){
 var port = chrome.extension.connect();
 port.onMessage.addListener(function(data) {
   try {
-    if (data.result) {
-      switch (data.task) {
-      case "update-siteinfo":
-        {
-          message("fetching siteinfos: ...");
-          port.postMessage({'task': 'siteinfo'});
-        }
-        break;
-      case "siteinfo":
-        {
-          siteinfos = data.content;
-          message("fetching siteinfos: done");
-        }
-        break;
-      case "fullfeed":
-        {
-          message("fetching fullfeed: done");
-          var text = data.content;
-          text = text.replace(/(<[^>]+?[\s"'])on(?:(?:un)?load|(?:dbl)?click|mouse(?:down|up|over|move|out)|key(?:press|down|up)|focus|blur|submit|reset|select|change)\s*=\s*(?:"(?:\\"|[^"])*"?|'(\\'|[^'])*'?|[^\s>]+(?=[\s>]|<\w))(?=[^>]*?>|<\w|\s*$)/gi, "$1");
-          text = text.replace(/<iframe(?:\s[^>]+?)?>[\S\s]*?<\/iframe\s*>/gi, "");
-          var htmldoc = parse(text, data.url);
-          var exp = 'id("current-entry")//div[contains(concat(" ", @class, " "), " entry-body ")]';
-          var body = $X(exp)[0]
-          while (body.firstChild) body.removeChild(body.firstChild);
-          var entry = $X(lastItem.siteinfo.xpath, htmldoc);
-          var content = document.createDocumentFragment();
-          entry.map(function(i) {
-            try {
-              i = document.adoptNode(i, true);
-            } catch (e) {
-              i = document.importNode(i, true);
-            }
-            content.appendChild(i);
-          });
-          body.appendChild(content);
-        }
-        break;
+    switch (data.task) {
+    case "update-siteinfo":
+      {
+        message("fetching siteinfos: ...");
+        port.postMessage({'task': 'siteinfo'});
       }
+      break;
+    case "siteinfo":
+      {
+        if (!data.result) return message("fetching siteinfos: failed(" + data.reason + ")");
+        message("fetching siteinfos: done");
+        siteinfos = data.content;
+      }
+      break;
+    case "fullfeed":
+      {
+        if (!data.result) return message("fetching full story: failed(" + data.reason + ")");
+        message("fetching full story: done");
+        var text = data.content;
+        text = text.replace(/(<[^>]+?[\s"'])on(?:(?:un)?load|(?:dbl)?click|mouse(?:down|up|over|move|out)|key(?:press|down|up)|focus|blur|submit|reset|select|change)\s*=\s*(?:"(?:\\"|[^"])*"?|'(\\'|[^'])*'?|[^\s>]+(?=[\s>]|<\w))(?=[^>]*?>|<\w|\s*$)/gi, "$1");
+        text = text.replace(/<iframe(?:\s[^>]+?)?>[\S\s]*?<\/iframe\s*>/gi, "");
+        var htmldoc = parse(text, data.url);
+        var exp = 'id("current-entry")//div[contains(concat(" ", @class, " "), " entry-body ")]';
+        var body = $X(exp)[0]
+        while (body.firstChild) body.removeChild(body.firstChild);
+        var entry = $X(lastItem.siteinfo.xpath, htmldoc);
+        var content = document.createDocumentFragment();
+        entry.map(function(i) {
+          try {
+            i = document.adoptNode(i, true);
+          } catch (e) {
+            i = document.importNode(i, true);
+          }
+          content.appendChild(i);
+        });
+        body.appendChild(content);
+      }
+      break;
     }
   } catch(e) {
     message("failed to task: " + data.task);
@@ -241,14 +239,28 @@ port.onMessage.addListener(function(data) {
 
 var siteinfos = [];
 var lastItem = {};
+var autoLoad = false;
 
-function fullfeed() {
+function request_full_story() {
+  message("fetching full story: ...");
+  port.postMessage({'task': 'fullfeed', 'url': lastItem.url});
+}
+
+function request_update_siteinfo() {
+  message("fetching siteinfos: ...");
+  port.postMessage({'task': 'siteinfo'});
 }
 
 var timer = setTimeout(function() {
   if (timer) clearTimeout(timer);
   try {
-    var exp = 'id("current-entry")//a[contains(concat(" ", @class, " "), " entry-title-link ")]';
+    var exp = 'id("current-entry")//div[contains(concat(" ", @class, " "), " entry-body ")]';
+    if ($X(exp).length == 0) {
+      lastItem.url = '';
+      throw "nothing to do...";
+    }
+
+    exp = 'id("current-entry")//a[contains(concat(" ", @class, " "), " entry-title-link ")]';
     var url =  $X(exp)[0].href;
     if (lastItem.url == url) throw "nothing to do..."
     lastItem.url = url;
@@ -258,15 +270,13 @@ var timer = setTimeout(function() {
         var icon = document.createElement('span');
         icon.title = "ready to fetch full entry";
         icon.innerHTML = '<img src="' + chrome.extension.getURL('google_reader_full_feed.gif') + '" style="cursor: pointer;"/>';
-        icon.addEventListener('click', function() {
-          message("fetching fullfeed: ...");
-          port.postMessage({'task': 'fullfeed', 'url': lastItem.url});
-        }, false);
-        icon.className = 'chrome_grff_checked';
+        icon.addEventListener('click', request_full_story, false);
+        icon.id = 'grff-icon';
         var container = $X('id("current-entry")//a[contains(concat(" ", @class, " "), " entry-title-link ")]')[0].parentNode;
         container.appendChild(document.createTextNode(' '));
         container.appendChild(icon);
         lastItem.siteinfo = siteinfos[n];
+        if (autoLoad) request_full_story();
         break;
       }
     }
@@ -277,16 +287,21 @@ var timer = setTimeout(function() {
 setTimeout(function() {
   message("fetching siteinfos: ...");
   port.postMessage({'task': 'siteinfo'});
-  /*
   document.addEventListener('keyup', function(e) {
-    if (e.keyCode == w.KeyEvent.DOM_VK_Z) {
-      var exp = 'id("current-entry")//a[contains(concat(" ", @class, " "), " entry-title-link ")]';
-      var url =  $X(exp)[0].href;
-      if (lastItem.url != url) return;
-      message("fetching fullfeed: ...");
-      port.postMessage({'task': 'fullfeed', 'url': lastItem.url});
+    if (e.keyCode == 90/* z */) {
+      if (e.ctrlKey) {
+        autoLoad = !autoLoad;
+        message('AutoLoad: ' + (autoLoad ? 'on' : 'off'));
+      } else
+      if (e.shiftKey) {
+        request_update_siteinfo();
+      } else {
+        var exp = 'id("current-entry")//a[contains(concat(" ", @class, " "), " entry-title-link ")]';
+        var url =  $X(exp)[0].href;
+        if (!document.getElementById('grff-icon')) return;
+        request_full_story();
+      }
     }
   }, false);
-  */
 }, 500);
 

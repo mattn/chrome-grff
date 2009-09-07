@@ -1,51 +1,70 @@
 <script type="text/javascript">
 window.onload = function() {
+  var ports = [];
   chrome.self.onConnect.addListener(function(port) {
+    ports.push(port);
     port.onMessage.addListener(function(data, con) {
       switch(data.task) {
       case "siteinfo":
-        {
+        try {
           var req = new XMLHttpRequest();
           req.open('GET', 'http://wedata.net/databases/LDRFullFeed/items.json', true);
           req.onload = function(res) {
-            var siteinfos = eval(req.responseText)
-              .map(function(i) { return i.data })
-              .sort(function(lhs, rhs) { return rhs.priority - lhs.priority });
-            data.result = true;
-            data.content = siteinfos;
+            try {
+              if (req.status != 200) return req.onerror(req.statusText);
+              var siteinfos = eval(req.responseText)
+                .map(function(i) { return i.data })
+                .sort(function(lhs, rhs) { return rhs.priority - lhs.priority });
+              data.result = true;
+              data.content = siteinfos;
+            } catch(e) {
+              data.result = false;
+              data.reason = 'invalid siteinfo';
+            }
             con.postMessage(data);
           };
-          req.onerror = function(res) {
+          req.onerror = function(e) {
             data.result = false;
-            data.content = [];
+            data.reason = e;
             con.postMessage(data);
           };
           req.send(null);
-
-          document.getElementById('grff').onclick = function() {
-            con.postMessage({'result':true, 'task':'update-siteinfo'});
-          }
+        } catch(e) {
+          data.result = false;
+          data.reason = e;
+          con.postMessage(data);
         }
         break;
       case "fullfeed":
-        {
+        try {
           var req = new XMLHttpRequest();
           req.open('GET', data.url, true);
           req.onload = function(res) {
+            if (req.status != 200) return req.onerror(req.statusText);
             data.result = true;
             data.content = req.responseText;
             con.postMessage(data);
           };
-          req.onerror = function(res) {
+          req.onerror = function(e) {
             data.result = false;
+            data.reason = e;
             con.postMessage(data);
           };
           req.send(null);
+        } catch(e) {
+          data.result = false;
+          data.reason = e;
+          con.postMessage(data);
         }
         break;
       }
     });
   });
+  document.getElementById('grff').onclick = function() {
+    ports.forEach(function(port) {
+      port.postMessage({'result':true, 'task':'update-siteinfo'});
+    });
+  }
 }
 </script>
 <div class="toolstrip-button">
