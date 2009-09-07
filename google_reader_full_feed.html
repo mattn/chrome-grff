@@ -1,0 +1,53 @@
+<script type="text/javascript">
+window.onload = function() {
+  chrome.self.onConnect.addListener(function(port) {
+    port.onMessage.addListener(function(data, con) {
+      switch(data.task) {
+      case "siteinfo":
+        {
+          var req = new XMLHttpRequest();
+          req.open('GET', 'http://wedata.net/databases/LDRFullFeed/items.json', true);
+          req.onload = function(res) {
+            var siteinfos = eval(req.responseText)
+              .map(function(i) { return i.data })
+              .sort(function(lhs, rhs) { return rhs.priority - lhs.priority });
+            data.result = true;
+            data.content = siteinfos;
+            con.postMessage(data);
+          };
+          req.onerror = function(res) {
+            data.result = false;
+            data.content = [];
+            con.postMessage(data);
+          };
+          req.send(null);
+
+          document.getElementById('grff').onclick = function() {
+            con.postMessage({'result':true, 'task':'update-siteinfo'});
+          }
+        }
+        break;
+      case "fullfeed":
+        {
+          var req = new XMLHttpRequest();
+          req.open('GET', data.url, true);
+          req.onload = function(res) {
+            data.result = true;
+            data.content = req.responseText;
+            con.postMessage(data);
+          };
+          req.onerror = function(res) {
+            data.result = false;
+            con.postMessage(data);
+          };
+          req.send(null);
+        }
+        break;
+      }
+    });
+  });
+}
+</script>
+<div class="toolstrip-button">
+<img src="google_reader_full_feed.gif" id="grff" title="google reader full feed for chrome"/>
+</div>

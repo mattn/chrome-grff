@@ -1,0 +1,17 @@
+{
+  "name": "google reader full feed",
+  "description": "google reader full feed for google chrome. show full story of the current entry in google reader.",
+  "version": "0.0.1",
+  "permissions": [
+    "http://*/*"
+  ],
+  "toolstrips": [ "google_reader_full_feed.html" ],
+  "content_scripts": [
+    {
+      "js": [ "google_reader_full_feed.js" ],
+      "matches": [
+        "http://www.google.com/reader/*"
+      ]
+    }
+  ]
+}
