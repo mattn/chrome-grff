@@ -10,7 +10,8 @@
     {
       "js": [ "google_reader_full_feed.js" ],
       "matches": [
-        "http://www.google.com/reader/*"
+        "http://www.google.com/reader/*",
+        "http://www.google.co.jp/reader/*"
       ]
     }
   ]
