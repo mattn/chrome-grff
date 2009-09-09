@@ -19,7 +19,7 @@ window.onload = function() {
               data.content = siteinfos;
             } catch(e) {
               data.result = false;
-              data.reason = 'invalid siteinfo';
+              data.reason = 'maybe invalid siteinfo';
             }
             con.postMessage(data);
           };
@@ -61,9 +61,11 @@ window.onload = function() {
     });
   });
   document.getElementById('grff').onclick = function() {
-    ports.forEach(function(port) {
-      port.postMessage({'result':true, 'task':'update-siteinfo'});
-    });
+    try {
+      ports.forEach(function(port) {
+        port.postMessage({'result':true, 'task':'update-siteinfo'});
+      });
+    } catch(e) {}
   }
 }
 </script>

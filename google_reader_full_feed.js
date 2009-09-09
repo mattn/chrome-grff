@@ -67,6 +67,7 @@ function parse(str, url) {
     remove_risks(htmldoc);
     var resolver = path_resolver(url);
     rel2abs(resolver, htmldoc);
+    postFilters.forEach(function(f) { try { f(htmldoc, url) } catch(e) {} });
     return htmldoc;
   } catch(e) {
     console.info(e);
@@ -190,6 +191,30 @@ function message (mes){
   FlashMessage.showFlashMessageWindow(mes, 1000);
 }
 
+var siteinfos = [];
+var lastItem = {};
+var autoLoad = false;
+var preFilters = [
+  (function(doc, url) {
+    var container = $X('id("current-entry")//a[contains(concat(" ", @class, " "), " entry-title-link ")]')[0].parentNode;
+    icon = document.createElement('span');
+    icon.innerHTML = ''
+      + '&nbsp;<img src="http://b.hatena.ne.jp/entry/image/' + url.replace(/#/g, '%23') + '" title="\u306f\u3066\u306a\u30d6\u30c3\u30af\u30de\u30fc\u30af"/>'
+      + '&nbsp;<img src="http://image.clip.livedoor.com/counter/' + url.replace(/#/g, '%23') + '" title="livedoor \u30af\u30ea\u30c3\u30d7"/>'
+    container.appendChild(icon);
+  })
+];
+var postFilters = [
+  (function(doc, url) {
+    var anchors = $X('descendant-or-self::a', doc);
+    if (anchors) {
+      anchors.forEach(function(i) {
+        i.target = '_blank';
+      });
+    }
+  })
+];
+
 var port = chrome.extension.connect();
 port.onMessage.addListener(function(data) {
   try {
@@ -237,10 +262,6 @@ port.onMessage.addListener(function(data) {
   }
 });
 
-var siteinfos = [];
-var lastItem = {};
-var autoLoad = false;
-
 function request_full_story() {
   message("fetching full story: ...");
   port.postMessage({'task': 'fullfeed', 'url': lastItem.url});
@@ -277,6 +298,8 @@ var timer = setTimeout(function() {
         container.appendChild(icon);
         lastItem.siteinfo = siteinfos[n];
         if (autoLoad) request_full_story();
+        var entry = $X('id("current-entry")')[0];
+        preFilters.forEach(function(f) { try { f(entry, url) } catch(e) {} });
         break;
       }
     }
