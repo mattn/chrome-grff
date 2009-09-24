@@ -196,12 +196,11 @@ var lastItem = {};
 var autoLoad = false;
 var preFilters = [
   (function(doc, url) {
-    var container = $X('id("current-entry")//a[contains(concat(" ", @class, " "), " entry-title-link ")]')[0].parentNode;
     icon = document.createElement('span');
     icon.innerHTML = ''
       + '&nbsp;<img src="http://b.hatena.ne.jp/entry/image/' + url.replace(/#/g, '%23') + '" title="\u306f\u3066\u306a\u30d6\u30c3\u30af\u30de\u30fc\u30af"/>'
       + '&nbsp;<img src="http://image.clip.livedoor.com/counter/' + url.replace(/#/g, '%23') + '" title="livedoor \u30af\u30ea\u30c3\u30d7"/>'
-    container.appendChild(icon);
+    document.getElementById('grff-icon').appendChild(icon);
   })
 ];
 var postFilters = [
@@ -286,15 +285,16 @@ var timer = setTimeout(function() {
     if (lastItem.url == url) throw "nothing to do..."
     lastItem.url = url;
 
+    var icon = document.getElementById('grff-icon');
+    if (icon) icon.parentNode.removeChild(icon);
     for (var n = 0; n < siteinfos.length; n++) {
       if ((new RegExp(siteinfos[n].url)).test(url)) {
-        var icon = document.createElement('span');
+        icon = document.createElement('span');
         icon.title = "ready to fetch full entry";
-        icon.innerHTML = '<img src="' + chrome.extension.getURL('google_reader_full_feed.gif') + '" style="cursor: pointer;"/>';
+        icon.innerHTML = '&nbsp;<img src="' + chrome.extension.getURL('google_reader_full_feed.gif') + '" style="cursor: pointer;"/>';
         icon.addEventListener('click', request_full_story, false);
         icon.id = 'grff-icon';
         var container = $X('id("current-entry")//a[contains(concat(" ", @class, " "), " entry-title-link ")]')[0].parentNode;
-        container.appendChild(document.createTextNode(' '));
         container.appendChild(icon);
         lastItem.siteinfo = siteinfos[n];
         if (autoLoad) request_full_story();
