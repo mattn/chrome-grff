@@ -1,8 +1,9 @@
+DEST = "$(shell pwd)/chrome-grff"
+
 ifndef CHROME
 ifneq ($(windir),)
 
 # Windows
-DEST = "$(shell pwd)\chrome-grff"
 CHROME = "$(USERPROFILE)/Local Settings/Application Data/Google/Chrome/Application/chrome.exe"
 
 else
@@ -23,18 +24,18 @@ endif
 endif
 endif
 
-SRCS = google_reader_full_feed.gif google_reader_full_feed.html google_reader_full_feed.js manifest.json
+SRCS = btn.gif background.html fullfeed.js manifest.json
 
 all : chrome-grff.crx
 
 first : $(SRCS)
-	@-rm -r $(DEST)
+	@-rm -rf $(DEST)
 	@mkdir $(DEST)
 	@cp $(SRCS) $(DEST)/.
 	$(CHROME) --pack-extension=$(DEST)
 
 chrome-grff.crx : $(SRCS)
-	@-rm -r $(DEST)
+	@-rm -rf $(DEST)
 	@mkdir $(DEST)
 	@cp $(SRCS) $(DEST)/.
 	$(CHROME) --pack-extension=$(DEST) --pack-extension-key=$(DEST).pem
