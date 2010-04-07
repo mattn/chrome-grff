@@ -26,3 +26,7 @@
 #grff-icon{
   display: inline-block;
 }
+
+.fullfeed-loading{
+  background-color : Honeydew !important;
+}
