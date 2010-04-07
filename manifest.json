@@ -1,18 +1,23 @@
 {
-  "name": "google reader full feed",
-  "description": "google reader full feed for google chrome. show full story of the current entry in google reader.",
-  "version": "0.0.4",
+  "name": "Google Reader Full Feed",
+  "description": "show full story of the current entry in google reader.",
+  "version": "0.0.5",
   "id": "findpbebkoafnmdflhoofbjmamacnneb",
-  "permissions": [
-    "http://*/*"
-  ],
-  "toolstrips": [ "google_reader_full_feed.html" ],
+  "permissions": ["tabs", "http://*/*", "https://*/*"],
+  "background_page": "background.html",
+  "browser_action": {
+    "default_icon": "btn.gif",
+    "default_title": "Fetch SITEINFO"
+  },
   "content_scripts": [
     {
-      "js": [ "google_reader_full_feed.js" ],
+      "js": ["fullfeed.js"],
+      "css": ["fullfeed.css"],
       "matches": [
         "http://www.google.com/reader/*",
-        "http://www.google.co.jp/reader/*"
+        "http://www.google.co.jp/reader/*",
+        "https://www.google.com/reader/*",
+        "https://www.google.co.jp/reader/*"
       ]
     }
   ]
