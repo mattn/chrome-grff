@@ -1,74 +1,94 @@
 <script type="text/javascript">
+
+var dbUrl = 'http://wedata.net/databases/LDRFullFeed/items.json';
+
+function getSiteInfo(data, callback){
+  if(localStorage.length != 0){
+    callback({
+      task: "siteinfo",
+      result: true,
+      content: JSON.parse(localStorage.getItem("SITEINFO"))
+    });
+  }
+  
+  try{
+    var req = new XMLHttpRequest();
+    req.open('GET', dbUrl, true);
+    
+    req.onload = function(res) {
+      try {
+        if (req.status != 200){
+          callback(req.onerror(req.statusText));
+          return;
+        }
+        var siteinfo_cache = eval(req.responseText)
+          .map(function(i){ return i.data })
+          .sort(function(lhs, rhs){ return rhs.priority - lhs.priority });
+        localStorage.setItem("SITEINFO", JSON.stringify(siteinfo_cache));
+        callback({task: "siteinfo", result: true, content: siteinfo_cache});
+      } catch(e) {
+        callback({
+          task: "siteinfo", result: false, reason: 'maybe invalid siteinfo'
+        })
+      }
+    };
+    
+    req.onerror =
+      function(e) { return {task: "siteinfo", result: false, reason: e} };
+    
+    req.send(null);
+  } catch(e) { callback({task: "siteinfo", result: false, reason: e}) }
+}
+
 window.onload = function() {
   var ports = [];
-  chrome.self.onConnect.addListener(function(port) {
+  
+  chrome.extension.onConnect.addListener(function(port) {
     ports.push(port);
-    port.onMessage.addListener(function(data, con) {
+    
+    port.onMessage.addListener(function(data) {
       switch(data.task) {
-      case "siteinfo":
-        try {
-          var req = new XMLHttpRequest();
-          req.open('GET', 'http://wedata.net/databases/LDRFullFeed/items.json', true);
-          req.onload = function(res) {
-            try {
-              if (req.status != 200) return req.onerror(req.statusText);
-              var siteinfos = eval(req.responseText)
-                .map(function(i) { return i.data })
-                .sort(function(lhs, rhs) { return rhs.priority - lhs.priority });
+        case "open":
+          chrome.tabs.create({url: data.url, selected: false})
+          break;
+        case "siteinfo":
+          getSiteInfo(data, function(result){ port.postMessage(result) });
+          break;
+        case "fullfeed":
+          try{
+            var req = new XMLHttpRequest();
+            
+            req.open('GET', data.url, true);
+            req.onload = function(res){
+              if(req.status != 200){ return req.onerror(req.statusText) }
               data.result = true;
-              data.content = siteinfos;
-            } catch(e) {
+              data.content = req.responseText;
+              port.postMessage(data);
+            };
+            
+            req.onerror = function(e){
               data.result = false;
-              data.reason = 'maybe invalid siteinfo';
-            }
-            con.postMessage(data);
-          };
-          req.onerror = function(e) {
+              data.reason = e;
+              port.postMessage(data);
+            };
+            
+            req.send(null);
+          } catch(e) {
             data.result = false;
             data.reason = e;
-            con.postMessage(data);
-          };
-          req.send(null);
-        } catch(e) {
-          data.result = false;
-          data.reason = e;
-          con.postMessage(data);
-        }
-        break;
-      case "fullfeed":
-        try {
-          var req = new XMLHttpRequest();
-          req.open('GET', data.url, true);
-          req.onload = function(res) {
-            if (req.status != 200) return req.onerror(req.statusText);
-            data.result = true;
-            data.content = req.responseText;
-            con.postMessage(data);
-          };
-          req.onerror = function(e) {
-            data.result = false;
-            data.reason = e;
-            con.postMessage(data);
-          };
-          req.send(null);
-        } catch(e) {
-          data.result = false;
-          data.reason = e;
-          con.postMessage(data);
-        }
-        break;
+            port.postMessage(data);
+          }
+          
+          break;
       }
     });
   });
-  document.getElementById('grff').onclick = function() {
-    try {
-      ports.forEach(function(port) {
-        port.postMessage({'result':true, 'task':'update-siteinfo'});
-      });
-    } catch(e) {}
-  }
+  
+  chrome.browserAction.onClicked.addListener(function() {
+    localStorage.clear();
+    ports.forEach(function(port) {
+      port.postMessage({result: true, task: 'update-siteinfo'})
+    })
+  });
 }
 </script>
-<div class="toolstrip-button">
-<img src="google_reader_full_feed.gif" id="grff" title="google reader full feed for chrome"/>
-</div>

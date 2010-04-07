@@ -1,0 +1,28 @@
+
+#flash-message{
+  position : fixed;
+  font-size : 150%;
+  z-index : 10000;
+  padding : 20px 30px;
+  left : 50%;
+  top : 50%;
+  margin : -1em;
+  background-color : #444;
+  color : #FFF;
+  -webkit-border-radius: 0.3em;
+  min-width : 1em;
+  text-align : center;
+}
+
+.hatena-bookmark-counter{
+  margin: 0 5px;
+}
+
+.fullfeed-btn{
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+#grff-icon{
+  display: inline-block;
+}
