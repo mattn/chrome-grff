@@ -72,6 +72,8 @@ task["fullfeed"] = function(data){
   }else{
     message("Fetching full story: Failed(" + data.reason + ")")
   }
+  var e = $X('id("current-entry")//div[contains(concat(" ", @class, " "), " entry-body ")]')[0];
+  e.className = e.className.replace(/ fullfeed_loading /g, '');
 };
 
 port.onMessage.addListener(function(data){
@@ -84,6 +86,7 @@ port.onMessage.addListener(function(data){
 
 function request_full_story() {
   message("Fetching full story: ...");
+  $X('id("current-entry")//div[contains(concat(" ", @class, " "), " entry-body ")]')[0].className += ' fullfeed_loading ';
   port.postMessage({task: 'fullfeed', url: lastItem.url});
 }
 
@@ -130,6 +133,11 @@ var timer = setTimeout(function() {
 });
 
 setTimeout(function() {
+  var link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'data:text/css,' + escape('.fullfeed_loading { background-color : Honeydew !important; }');
+  document.body.appendChild(link);
+
   message("Fetching siteinfos: ...");
   port.postMessage({task: 'siteinfo'});
   if(!!document["listenerAdded"]){ return }
