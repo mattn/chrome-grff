@@ -48,6 +48,16 @@ task["siteinfo"] = function(data){
   }
 };
 
+task["expand"] = function(data){
+  if(data.result){
+    message("Expanding URL : Done");
+    var exp = 'id("current-entry")//a[contains(concat(" ", @class, " "), " entry-title-link ")]';
+    $X(exp)[0].href = data.content;
+  } else {
+    message("Expanding URL : Failed(" + data.reason + ")")
+  }
+}
+
 task["fullfeed"] = function(data){
   if (data.result){
     message("Fetching full story : Done");
@@ -70,7 +80,7 @@ task["fullfeed"] = function(data){
     });
     body.appendChild(content);
   }else{
-    message("Fetching full story: Failed(" + data.reason + ")")
+    message("Fetching full story : Failed(" + data.reason + ")")
   }
   var e = $X('id("current-entry")//div[contains(concat(" ", @class, " "), " entry-body ")]')[0];
   e.className = e.className.replace(/ fullfeed-loading /g, '');
@@ -80,18 +90,18 @@ port.onMessage.addListener(function(data){
   try {
     task[data.task].call(data, data)
   } catch(e) {
-    message("Failed to task: " + JSON.stringify(data));
+    message("Failed to task : " + JSON.stringify(data));
   }
 });
 
 function request_full_story() {
-  message("Fetching full story: ...");
+  message("Fetching full story : ...");
   $X('id("current-entry")//div[contains(concat(" ", @class, " "), " entry-body ")]')[0].className += ' fullfeed-loading ';
   port.postMessage({task: 'fullfeed', url: lastItem.url});
 }
 
 function request_update_siteinfo() {
-  message("Fetching siteinfos: ......");
+  message("Fetching siteinfos : ......");
   port.postMessage({task: 'siteinfo'});
 }
 
@@ -108,6 +118,12 @@ var timer = setTimeout(function() {
     var url =  $X(exp)[0].href;
     if (lastItem.url == url) throw "nothing to do..."
     lastItem.url = url;
+
+    if (url.match(/http:\/\/www\.pheedo\.jp\/click\.phdo\?/)) {
+      message("Exapding URL : ...");
+      port.postMessage({task: 'expand', url: 'http://expand-ext0.appspot.com/?0=' + encodeURIComponent(url)});
+      throw "nothing to do...";
+    }
 
     var icon = document.getElementById('grff-icon');
     if (icon) icon.parentNode.removeChild(icon);
@@ -133,7 +149,7 @@ var timer = setTimeout(function() {
 });
 
 setTimeout(function() {
-  message("Fetching siteinfos: ...");
+  message("Fetching siteinfos : ...");
   port.postMessage({task: 'siteinfo'});
   if(!!document["listenerAdded"]){ return }
   document.addEventListener('keydown', function(e){
@@ -156,7 +172,7 @@ setTimeout(function() {
       // Z
       if(e.ctrlKey){
         autoLoad = !autoLoad;
-        message('AutoLoad: ' + (autoLoad ? 'on' : 'off'));
+        message('AutoLoad : ' + (autoLoad ? 'on' : 'off'));
       }else if(e.shiftKey){
         request_update_siteinfo();
       }else{

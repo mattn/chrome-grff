@@ -54,6 +54,7 @@ window.onload = function() {
         case "siteinfo":
           getSiteInfo(data, function(result){ port.postMessage(result) });
           break;
+        case "expand":
         case "fullfeed":
           try{
             var req = new XMLHttpRequest();
