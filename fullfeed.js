@@ -119,11 +119,16 @@ var timer = setTimeout(function() {
     if (lastItem.url == url) throw "nothing to do..."
     lastItem.url = url;
 
-    if (url.match(/http:\/\/www\.pheedo\.jp\/click\.phdo\?/)) {
-      message("Exapding URL : ...");
-      port.postMessage({task: 'expand', url: 'http://expand-ext0.appspot.com/?0=' + encodeURIComponent(url)});
-      throw "nothing to do...";
-    }
+    [
+      /^http:\/\/www\.pheedo\.jp\/click\.phdo\?/,
+      /^http:\/\/feedproxy\.google\.com\/\~r\//,
+    ].forEach(function(i) {
+      if (url.match(i)) {
+        message("Exapding URL : ...");
+        port.postMessage({task: 'expand', url: url});
+        throw "nothing to do...";
+      }
+    });
 
     var icon = document.getElementById('grff-icon');
     if (icon) icon.parentNode.removeChild(icon);

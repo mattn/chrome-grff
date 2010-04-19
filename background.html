@@ -55,6 +55,7 @@ window.onload = function() {
           getSiteInfo(data, function(result){ port.postMessage(result) });
           break;
         case "expand":
+          data.url = 'http://expand-ext0.appspot.com/?0=' + encodeURIComponent(data.url);
         case "fullfeed":
           try{
             var req = new XMLHttpRequest();
