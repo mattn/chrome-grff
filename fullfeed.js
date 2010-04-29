@@ -158,7 +158,7 @@ setTimeout(function() {
   port.postMessage({task: 'siteinfo'});
   if(!!document["listenerAdded"]){ return }
   document.addEventListener('keydown', function(e){
-    if(e.target.tagName.toLowerCase() == "input"){
+    if(e.target.tagName.toLowerCase() == "input" || e.target.tagName.toLowerCase() == "textarea"){
       return
     }else if(e.keyCode == 188){
       // "," "<"
