@@ -5,7 +5,7 @@
   "id": "findpbebkoafnmdflhoofbjmamacnneb",
   "permissions": ["tabs", "http://*/*", "https://*/*"],
   "background_page": "background.html",
-  "browser_action": {
+  "page_action": {
     "default_icon": "btn.gif",
     "default_title": "Fetch SITEINFO"
   },
