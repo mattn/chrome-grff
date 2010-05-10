@@ -44,6 +44,7 @@ window.onload = function() {
   var ports = [];
   
   chrome.extension.onConnect.addListener(function(port) {
+    chrome.pageAction.show(port.tab.id);
     ports.push(port);
     
     port.onMessage.addListener(function(data) {
