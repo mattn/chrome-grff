@@ -87,7 +87,7 @@ window.onload = function() {
     });
   });
   
-  chrome.browserAction.onClicked.addListener(function() {
+  chrome.pageAction.onClicked.addListener(function() {
     localStorage.clear();
     ports.forEach(function(port) {
       port.postMessage({result: true, task: 'update-siteinfo'})
