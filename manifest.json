@@ -6,7 +6,7 @@
   "permissions": ["tabs", "http://*/*", "https://*/*"],
   "background_page": "background.html",
   "page_action": {
-    "default_icon": "btn.gif",
+    "default_icon": "btn.png",
     "default_title": "Fetch SITEINFO"
   },
   "content_scripts": [
