@@ -15,8 +15,9 @@ var preFilters = [
   (function(doc, url) {
     url = url.replace(/#/g, '%23');
     icon = document.createElement('span');
-    icon.innerHTML = '<img src="http://b.hatena.ne.jp/entry/image/' + url +
-      '" class="hatena-bookmark-counter"/>'
+    icon.innerHTML = '<a href="http://b.hatena.ne.jp/entry/' + url + '" title="Hatena Bookmark" target="_blank">'
+		+ '<img src="http://b.hatena.ne.jp/entry/image/' + url + '" class="hatena-bookmark-counter"/>'
+		+ '</a>';
     var grff = document.getElementById('grff-icon');
     grff.insertBefore(icon, grff.firstChild);
   })
@@ -137,7 +138,7 @@ var timer = setTimeout(function() {
         icon = document.createElement('span');
         icon.id = 'grff-icon';
         icon.title = "ready to fetch full entry";
-        icon.innerHTML = '<img src="' + chrome.extension.getURL('btn.gif') +
+        icon.innerHTML = '<img src="' + chrome.extension.getURL('btn.png') +
           '" class="fullfeed-btn"/>';
         icon.addEventListener('click', request_full_story, false);
         var container = $X('id("current-entry")//a[contains(concat(" ", @class, " "), " entry-title-link ")]')[0].parentNode;
