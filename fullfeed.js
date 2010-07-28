@@ -141,7 +141,7 @@ var timer = setTimeout(function() {
         icon.innerHTML = '<img src="' + chrome.extension.getURL('btn.png') +
           '" class="fullfeed-btn"/>';
         icon.addEventListener('click', request_full_story, false);
-        var container = $X('id("current-entry")//a[contains(concat(" ", @class, " "), " entry-title-link ")]')[0].parentNode;
+        var container = $X('id("current-entry")//div[contains(concat(" ", @class, " "), " entry-main ")]')[0];
         container.appendChild(icon);
         lastItem.siteinfo = siteinfos[n];
         if (autoLoad) request_full_story();
