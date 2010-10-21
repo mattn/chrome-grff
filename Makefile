@@ -24,7 +24,7 @@ endif
 endif
 endif
 
-SRCS = btn.gif background.html fullfeed.js fullfeed.css manifest.json
+SRCS = btn.png background.html fullfeed.js fullfeed.css manifest.json
 
 all : chrome-grff.crx
 
