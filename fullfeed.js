@@ -142,7 +142,7 @@ var timer = setTimeout(function() {
         icon.id = 'grff-icon';
         icon.title = "ready to fetch full entry";
         icon.innerHTML = '<img src="' + chrome.extension.getURL('btn.png') +
-          '" class="fullfeed-btn"/>';
+          '" class="fullfeed-btn" width="19" height="19" />';
         icon.addEventListener('click', request_full_story, false);
         var container = $X('id("current-entry")//div[contains(concat(" ", @class, " "), " entry-container ")]//div[contains(concat(" ", @class, " "), " entry-main ")]')[0];
         container.appendChild(icon);

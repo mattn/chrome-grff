@@ -1,7 +1,7 @@
 {
   "name": "Google Reader Full Feed",
   "description": "show full story of the current entry in google reader.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "id": "findpbebkoafnmdflhoofbjmamacnneb",
   "permissions": ["tabs", "http://*/*", "https://*/*"],
   "background_page": "background.html",
